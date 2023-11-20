@@ -1,6 +1,14 @@
 import pygame
 import random
 import time
+from mutagen.mp3 import MP3
+
+def get_music_length(file_path):
+    audio = MP3(file_path)
+    return int(audio.info.length * 1000)
+
+
+music_length = get_music_length('01_-_vivid.mp3')
 
 
 
@@ -8,6 +16,7 @@ import time
 pygame.init()
 pygame.mixer.init()
 
+pygame.mixer.music.load('01_-_vivid.mp3')
 pygame.mixer.music.load('01_-_vivid.mp3')
 pygame.mixer.music.set_volume(0.1)
 pygame.mixer.music.play()
@@ -17,7 +26,7 @@ SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-# Define the original and current resolutions
+
 original_resolution = (512, 384)
 current_resolution = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
@@ -140,6 +149,24 @@ def get_CS(file_path):
                 return float(line.split(":")[1].strip())
 circle_radius = int(54.4 - 4.48 * get_CS("FAIRY FORE - Vivid (Hitoshirenu Shourai) [Normal].osu"))
 
+start_time = pygame.time.get_ticks()
+
+def end_game():
+    fadeout_time = 3000
+    pygame.mixer.music.fadeout(fadeout_time)
+
+    end_screen = True
+    while end_screen:
+        screen.fill((0, 0, 0))
+        #Тут будут кнопки
+
+        pygame.display.flip()
+        pygame.time.Clock().tick(60)
+
+        # Break the loop when player chooses an option or after a timeout
+        if pygame.mixer.music.get_busy() == False or pygame.time.get_ticks() - start_time > music_length + fadeout_time + 5000:
+            end_screen = False  # Break the loop when music ends or after a timeout
+            pygame.quit()  # Quit the game
 
 while running:
 
@@ -251,8 +278,7 @@ while running:
     pygame.display.flip()
     pygame.time.Clock().tick(60)
 
-    if HP <= 0 or (len(osu_data) == total_hits):
-        pygame.mixer.music.stop()
-        pygame.quit()
+    if HP <= 0 or (len(osu_data) == total_hits) or pygame.time.get_ticks() >= music_length:
+        end_game()
 
 pygame.quit()
